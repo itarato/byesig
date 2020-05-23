@@ -1,8 +1,7 @@
 const vscode = require('vscode');
 
 const decorationRenderOption = {
-	opacity: "0.2",
-	isWholeLine: true,
+	opacity: "0.1",
 	backgroundColor: "#eeeeee",
 };
 const COMMAND_FOLD = 'editor.fold';
@@ -36,7 +35,7 @@ function hideSig() {
 	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption);
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		console.log("Active editor not found");
+		return;
 	}
 
 	let ranges = [];
@@ -49,7 +48,7 @@ function hideSig() {
 async function foldSig() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		console.log("Active editor not found");
+		return;
 	}
 
 	let folded_selections = [];
@@ -64,9 +63,6 @@ async function foldSig() {
 
 	if (folded_selections.length > 0) {
 		editor.selections = folded_selections;
-		folded_selections.forEach((v) => {
-			console.log('folding line:', v.active.line);
-		})
 		await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
 		await vscode.commands.executeCommand(COMMAND_FOLD);
 		editor.selection = original_selection;

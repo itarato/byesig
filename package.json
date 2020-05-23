@@ -1,7 +1,7 @@
 {
 	"name": "byesig",
 	"displayName": "byesig",
-	"description": "Hide Ruby Sorbet Signatures",
+	"description": "Hide Ruby Sorbet signatures",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.45.0"
@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:byesig.helloWorld"
+		"onLanguage:ruby"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "byesig.helloWorld",
-				"title": "Hello World"
+				"command": "byesig.hideSig",
+				"title": "Hide Ruby Sorbet signatures"
 			}
 		]
 	},

@@ -1,54 +1,104 @@
 const vscode = require('vscode');
 
+const decorationRenderOption = {
+	opacity: "0.2",
+	isWholeLine: true,
+	backgroundColor: "#eeeeee",
+};
+const COMMAND_FOLD = 'editor.fold';
+const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
+const RE_SIG_BLOCK = "^ *sig do$.*?^ *end$";
+const RE_SIG_LINE = "^ *sig {.*?} *?$";
+
+var byesigTimeout;
+const DELAY_TIMEOUT_MS = 200;
+
+var byesigDecorationType;
+
+function delayedHideSig() {
+	if (byesigTimeout) {
+		clearTimeout(byesigTimeout);
+	}
+
+	byesigTimeout = setTimeout(hideSig, DELAY_TIMEOUT_MS);
+}
+
+async function hideAndFoldSig() {
+	hideSig();
+	await foldSig();
+}
+
+function hideSig() {
+	if (byesigDecorationType) {
+		byesigDecorationType.dispose();
+	}
+
+	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption);
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		console.log("Active editor not found");
+	}
+
+	let ranges = [];
+	ranges.push(...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor));
+	ranges.push(...getMatchPositions(new RegExp(RE_SIG_LINE, "gsm"), editor));
+
+	editor.setDecorations(byesigDecorationType, ranges);
+}
+
+async function foldSig() {
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		console.log("Active editor not found");
+	}
+
+	let folded_selections = [];
+	let original_selection = editor.selection;
+
+	getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).forEach((range) => {
+		if (original_selection.active.line < range.start.line || original_selection.active.line > range.end.line) {
+			let line_pos = editor.selection.active.with(range.start.line, 0);
+			folded_selections.push(new vscode.Selection(line_pos, line_pos));
+		}
+	});
+
+	if (folded_selections.length > 0) {
+		editor.selections = folded_selections;
+		folded_selections.forEach((v) => {
+			console.log('folding line:', v.active.line);
+		})
+		await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
+		await vscode.commands.executeCommand(COMMAND_FOLD);
+		editor.selection = original_selection;
+	}
+}
+
+function getMatchPositions(re, editor) {
+	let match;
+	let text = editor.document.getText();
+	let ranges = [];
+
+	while ((match = re.exec(text))) {
+		let start_pos = editor.document.positionAt(match.index);
+		let end_pos = editor.document.positionAt(match.index + match[0].length);
+		ranges.push(new vscode.Range(start_pos, end_pos));
+	}
+
+	return ranges;
+}
+
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	let disposable = vscode.commands.registerCommand('byesig.helloWorld', async function () {
-		let decorationRenderOption = {
-			opacity: "0.2",
-			isWholeLine: true,
-			backgroundColor: "#eeeeee",
-		};
+	context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', hideAndFoldSig));
+	vscode.window.onDidChangeActiveTextEditor(hideAndFoldSig, null, context.subscriptions);
 
-		let decorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption);
-		let editor = vscode.window.activeTextEditor;
+	vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
 
-		let text = editor.document.getText();
-
-		let re_sig_block = new RegExp("^ *sig do$.*?^ *end$", "gsm");
-		let re_sig_line = new RegExp("^ *sig {.*?} *?$", "gsm");
-		let match = null;
-		let ranges = [];
-		let folded_selections = [];
-
-		let original_selection = editor.selection;
-
-		while ((match = re_sig_block.exec(text))) {
-			let start_pos = editor.document.positionAt(match.index);
-			let end_pos = editor.document.positionAt(match.index + match[0].length);
-			ranges.push(new vscode.Range(start_pos, end_pos));
-
-			let line_pos = editor.selection.active.with(start_pos.line, 0);
-			folded_selections.push(new vscode.Selection(line_pos, line_pos));
-		}
-
-
-		while ((match = re_sig_line.exec(text))) {
-			let start_pos = editor.document.positionAt(match.index);
-			let end_pos = editor.document.positionAt(match.index + match[0].length);
-			ranges.push(new vscode.Range(start_pos, end_pos));
-		}
-
-		editor.setDecorations(decorationType, ranges);
-
-		editor.selections = folded_selections;
-		await vscode.commands.executeCommand('editor.fold');
-
-		editor.selection = original_selection;
-	});
-
-	context.subscriptions.push(disposable);
+	if (vscode.window.activeTextEditor) {
+		hideAndFoldSig();
+	}
 }
 exports.activate = activate;
 

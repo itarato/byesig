@@ -36,6 +36,10 @@ function hideSig() {
 		return;
 	}
 
+	if (!isRubyFile(editor)) {
+		return;
+	}
+
 	if (byesigDecorationType) {
 		byesigDecorationType.dispose();
 	}
@@ -44,8 +48,6 @@ function hideSig() {
 	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
 		return;
 	}
-
-	// @TODO quit if not ruby
 
 	let ranges = [];
 	ranges.push(...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor));
@@ -64,12 +66,15 @@ async function foldSig() {
 		return;
 	}
 
-	// @TODO quit if not ruby
+	if (!isRubyFile(editor)) {
+		return;
+	}
 
 	let folded_selections = [];
 	let original_selection = editor.selection;
 
 	getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).forEach((range) => {
+		// @FIXME: This works on first load, but not on tab change, in which case the selection is always 0:0.
 		if (original_selection.active.line < range.start.line || original_selection.active.line > range.end.line) {
 			let line_pos = editor.selection.active.with(range.start.line, 0);
 			folded_selections.push(new vscode.Selection(line_pos, line_pos));
@@ -80,7 +85,7 @@ async function foldSig() {
 		editor.selections = folded_selections;
 		await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
 		await vscode.commands.executeCommand(COMMAND_FOLD);
-		editor.selection = original_selection;
+		editor.selections = [original_selection];
 	}
 }
 
@@ -98,13 +103,16 @@ function getMatchPositions(re, editor) {
 	return ranges;
 }
 
+function isRubyFile(editor) {
+	return editor.document.languageId == "ruby";
+}
+
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
 	context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', hideAndFoldSig));
 	vscode.window.onDidChangeActiveTextEditor(hideAndFoldSig, null, context.subscriptions);
-
 	vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
 
 	if (vscode.window.activeTextEditor) {

@@ -1,11 +1,7 @@
 const vscode = require('vscode');
-
-const decorationRenderOption = {
-	opacity: "0.1",
-	backgroundColor: "#eeeeee",
-};
 const COMMAND_FOLD = 'editor.fold';
 const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
+// @FIXME: Don't match with empty block.
 const RE_SIG_BLOCK = "^ *sig do$.*?^ *end$";
 const RE_SIG_LINE = "^ *sig {.*?} *?$";
 
@@ -27,16 +23,29 @@ async function hideAndFoldSig() {
 	await foldSig();
 }
 
-function hideSig() {
-	if (byesigDecorationType) {
-		byesigDecorationType.dispose();
+function decorationRenderOption() {
+	return {
+		opacity: vscode.workspace.getConfiguration('byesig').get('opacity').toString(),
+		backgroundColor: vscode.workspace.getConfiguration('byesig').get('backgroundColor')
 	}
+}
 
-	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption);
+function hideSig() {
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		return;
 	}
+
+	if (byesigDecorationType) {
+		byesigDecorationType.dispose();
+	}
+	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
+
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
+		return;
+	}
+
+	// @TODO quit if not ruby
 
 	let ranges = [];
 	ranges.push(...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor));
@@ -50,6 +59,12 @@ async function foldSig() {
 	if (!editor) {
 		return;
 	}
+
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
+		return;
+	}
+
+	// @TODO quit if not ruby
 
 	let folded_selections = [];
 	let original_selection = editor.selection;

@@ -23,7 +23,11 @@
 		"commands": [
 			{
 				"command": "byesig.hideSig",
-				"title": "Hide Ruby Sorbet signatures"
+				"title": "ByeSig: hide Sorbet signatures"
+			},
+			{
+				"command": "byesig.showSig",
+				"title": "ByeSig: show Sorbet signatures"
 			}
 		],
 		"configuration": {

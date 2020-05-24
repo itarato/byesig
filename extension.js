@@ -107,11 +107,34 @@ function isRubyFile(editor) {
 	return editor.document.languageId == "ruby";
 }
 
+async function showAndUnfoldSig() {
+	let editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+
+	if (!isRubyFile(editor)) {
+		return;
+	}
+
+	if (byesigDecorationType) {
+		byesigDecorationType.dispose();
+	}
+	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
+
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
+		return;
+	}
+
+	await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
+}
+
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
 	context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', hideAndFoldSig));
+	context.subscriptions.push(vscode.commands.registerCommand('byesig.showSig', showAndUnfoldSig));
 	vscode.window.onDidChangeActiveTextEditor(hideAndFoldSig, null, context.subscriptions);
 	vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
 

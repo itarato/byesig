@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/itarato/byesig"
 	},
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"icon": "misc/logo.png",
 	"engines": {
 		"vscode": "^1.40.0"
@@ -40,8 +40,8 @@
 				},
 				"byesig.backgroundColor": {
 					"type": "string",
-					"description": "The background color of the hidden signature region",
-					"default": "#eeeeee"
+					"description": "The background color of the hidden signature region (CSS notation, eg: #2266AA), leave empty for transparent",
+					"default": ""
 				},
 				"byesig.opacity": {
 					"type": "number",

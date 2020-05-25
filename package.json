@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/itarato/byesig"
 	},
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"icon": "misc/logo.png",
 	"engines": {
 		"vscode": "^1.40.0"
@@ -57,7 +57,7 @@
 		"test": "node ./test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.45.0",
+		"@types/vscode": "^1.40.0",
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^7.0.2",
 		"@types/node": "^13.11.0",

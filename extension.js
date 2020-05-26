@@ -2,6 +2,7 @@
 // @FIXME: When navigating between tiles and new cursor position is different sometimes it creates a selection on clicking back
 
 const vscode = require('vscode');
+const path = require('path');
 const COMMAND_FOLD = 'editor.fold';
 const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
 // @FIXME: Don't match with empty block.
@@ -32,7 +33,9 @@ async function hideAndFoldSig() {
 function decorationRenderOption() {
 	return {
 		opacity: vscode.workspace.getConfiguration('byesig').get('opacity').toString(),
-		backgroundColor: vscode.workspace.getConfiguration('byesig').get('backgroundColor')
+		backgroundColor: vscode.workspace.getConfiguration('byesig').get('backgroundColor'),
+		gutterIconPath: path.join(__dirname, 'misc', 'icon.png'),
+		gutterIconSize: "contain",
 	}
 }
 
@@ -61,18 +64,26 @@ async function foldSig() {
 	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
 	if (!isRubyFile(editor)) return;
 
-	let original_selection = editor.selection;
-	let folded_selections = getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).map((range) => {
-		let line_pos = editor.selection.active.with(range.start.line, 0);
-		return new vscode.Selection(line_pos, line_pos);
-	});
+	// When switching active editor, it takes time for VSCode to establish a selection.
+	// This wait is so the old location of the cursor can be captured correctly.
+	setTimeout(async () => {
+		let original_selection = editor.selection;
+		let folded_selections = getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).map((range) => {
+			let line_pos = editor.selection.active.with(range.start.line, 0);
+			return new vscode.Selection(line_pos, line_pos);
+		});
 
-	if (folded_selections.length > 0) {
-		editor.selections = folded_selections;
-		await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
-		await vscode.commands.executeCommand(COMMAND_FOLD);
-		editor.selections = [original_selection];
-	}
+		if (folded_selections.length > 0) {
+			// This is a hack around not having an official API to find foldable regions (other than fold levels or all).
+			editor.selections = folded_selections;
+			await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
+			await vscode.commands.executeCommand(COMMAND_FOLD);
+
+			// After selecting the fold regions (and fold) if we restore the cursor immediately sometimes VSCode makes a
+			// selection with the delta. To avoid this, we wait a little.
+			setTimeout(() => { editor.selections = [original_selection]; }, 100);
+		}
+	}, 100);
 }
 
 function getMatchPositions(re, editor) {

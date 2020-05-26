@@ -1,7 +1,8 @@
 # ByeSig
 
-VSCode plugin to say goodbye to the annoying Sorbet signatures.
-For Ruby files it fades and folds Sorbet `sig` lines and blocks:
+ByeSig is a VSCode plugin to temporarily hide [Sorbet](https://sorbet.org/) signatures in Ruby source files.
+
+When active it fades and folds Sorbet `sig` lines and blocks:
 
 Before:
 ![Screenshot before](misc/screenshot-before.png)
@@ -11,8 +12,12 @@ After:
 
 # Options
 
-- Commands: force show and hide
-- Configuration:
+- VSCode commands: force show and hide
+- VSCode configuration:
   - opacity
   - backgroundColor
   - plugin on/off
+
+# Contribution
+
+Still super beta, any feedback / issue / pull request is welcomed.

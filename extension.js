@@ -1,5 +1,4 @@
-// @FIXME: On tiled view the disposal is called when switching active tile
-// @FIXME: When navigating between tiles and new cursor position is different sometimes it creates a selection on clicking back
+// @FEATURE-REQUEST: Folding optional
 
 const vscode = require('vscode');
 const path = require('path');

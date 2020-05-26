@@ -1,3 +1,6 @@
+// @FIXME: On tiled view the disposal is called when switching active tile
+// @FIXME: When navigating between tiles and new cursor position is different sometimes it creates a selection on clicking back
+
 const vscode = require('vscode');
 const COMMAND_FOLD = 'editor.fold';
 const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
@@ -5,12 +8,14 @@ const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
 const RE_SIG_BLOCK = "^ *sig do$.*?^ *end$";
 const RE_SIG_LINE = "^ *sig {.*?} *?$";
 
-var byesigTimeout;
+let byesigTimeout;
 const DELAY_TIMEOUT_MS = 200;
 
-var byesigDecorationType;
+let byesigDecorationType;
+let temporaryDisable = false;
 
 function delayedHideSig() {
+	console.log('delayedHideSig');
 	if (byesigTimeout) {
 		clearTimeout(byesigTimeout);
 	}
@@ -19,6 +24,7 @@ function delayedHideSig() {
 }
 
 async function hideAndFoldSig() {
+	console.log('hideAndFoldSig');
 	hideSig();
 	await foldSig();
 }
@@ -31,54 +37,33 @@ function decorationRenderOption() {
 }
 
 function hideSig() {
+	if (temporaryDisable) return;
 	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
+	if (!editor) return;
+	if (!isRubyFile(editor)) return;
 
-	if (!isRubyFile(editor)) {
-		return;
-	}
-
-	if (byesigDecorationType) {
-		byesigDecorationType.dispose();
-	}
+	disposeHidingDecoration();
 	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
 
-	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
-		return;
-	}
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
 
-	let ranges = [];
-	ranges.push(...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor));
-	ranges.push(...getMatchPositions(new RegExp(RE_SIG_LINE, "gsm"), editor));
-
-	editor.setDecorations(byesigDecorationType, ranges);
+	editor.setDecorations(byesigDecorationType, [
+		...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor),
+		...getMatchPositions(new RegExp(RE_SIG_LINE, "gsm"), editor)
+	]);
 }
 
 async function foldSig() {
+	if (temporaryDisable) return;
 	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
+	if (!editor) return;
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
+	if (!isRubyFile(editor)) return;
 
-	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
-		return;
-	}
-
-	if (!isRubyFile(editor)) {
-		return;
-	}
-
-	let folded_selections = [];
 	let original_selection = editor.selection;
-
-	getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).forEach((range) => {
-		// @FIXME: This works on first load, but not on tab change, in which case the selection is always 0:0.
-		if (original_selection.active.line < range.start.line || original_selection.active.line > range.end.line) {
-			let line_pos = editor.selection.active.with(range.start.line, 0);
-			folded_selections.push(new vscode.Selection(line_pos, line_pos));
-		}
+	let folded_selections = getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor).map((range) => {
+		let line_pos = editor.selection.active.with(range.start.line, 0);
+		return new vscode.Selection(line_pos, line_pos);
 	});
 
 	if (folded_selections.length > 0) {
@@ -109,44 +94,44 @@ function isRubyFile(editor) {
 
 async function showAndUnfoldSig() {
 	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return;
-	}
+	if (!editor) return;
+	if (!isRubyFile(editor)) return;
 
-	if (!isRubyFile(editor)) {
-		return;
-	}
+	disposeHidingDecoration();
+	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
 
+	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
+
+	await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
+}
+
+function disposeHidingDecoration() {
 	if (byesigDecorationType) {
 		byesigDecorationType.dispose();
 	}
-	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
+}
 
-	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) {
-		return;
-	}
+function onCommandHideAndFoldSig() {
+	temporaryDisable = false;
+	hideAndFoldSig();
+}
 
-	await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
+function onCommandShowAndUnfoldSig() {
+	temporaryDisable = true;
+	showAndUnfoldSig();
 }
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', hideAndFoldSig));
-	context.subscriptions.push(vscode.commands.registerCommand('byesig.showSig', showAndUnfoldSig));
+	context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', onCommandHideAndFoldSig));
+	context.subscriptions.push(vscode.commands.registerCommand('byesig.showSig', onCommandShowAndUnfoldSig));
 	vscode.window.onDidChangeActiveTextEditor(hideAndFoldSig, null, context.subscriptions);
 	vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
 
-	if (vscode.window.activeTextEditor) {
-		hideAndFoldSig();
-	}
+	if (vscode.window.activeTextEditor) hideAndFoldSig();
 }
 exports.activate = activate;
-
 function deactivate() {}
-
-module.exports = {
-	activate,
-	deactivate
-}
+module.exports = { activate, deactivate }

@@ -11,11 +11,11 @@ const RE_SIG_LINE = "^ *sig {.*?} *?$";
 let byesigTimeout;
 const DELAY_TIMEOUT_MS = 200;
 
-let byesigDecorationType;
+let byesigDecorationType = {};
 let temporaryDisable = false;
 
 function delayedHideSig() {
-	console.log('delayedHideSig');
+	console.log('delayedRefreshHideSig');
 	if (byesigTimeout) {
 		clearTimeout(byesigTimeout);
 	}
@@ -42,12 +42,13 @@ function hideSig() {
 	if (!editor) return;
 	if (!isRubyFile(editor)) return;
 
-	disposeHidingDecoration();
-	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
+	let tile_key = genTileKey(editor);
+	disposeHidingDecoration(tile_key);
+	byesigDecorationType[tile_key] = vscode.window.createTextEditorDecorationType(decorationRenderOption());
 
 	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
 
-	editor.setDecorations(byesigDecorationType, [
+	editor.setDecorations(byesigDecorationType[tile_key], [
 		...getMatchPositions(new RegExp(RE_SIG_BLOCK, "gsm"), editor),
 		...getMatchPositions(new RegExp(RE_SIG_LINE, "gsm"), editor)
 	]);
@@ -97,17 +98,18 @@ async function showAndUnfoldSig() {
 	if (!editor) return;
 	if (!isRubyFile(editor)) return;
 
-	disposeHidingDecoration();
-	byesigDecorationType = vscode.window.createTextEditorDecorationType(decorationRenderOption());
+	let tile_key = genTileKey(editor);
+	disposeHidingDecoration(tile_key);
 
 	if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
 
 	await vscode.commands.executeCommand(COMMAND_UNFOLD_ALL);
 }
 
-function disposeHidingDecoration() {
-	if (byesigDecorationType) {
-		byesigDecorationType.dispose();
+function disposeHidingDecoration(key) {
+	if (byesigDecorationType[key]) {
+		byesigDecorationType[key].dispose();
+		delete byesigDecorationType[key];
 	}
 }
 
@@ -119,6 +121,10 @@ function onCommandHideAndFoldSig() {
 function onCommandShowAndUnfoldSig() {
 	temporaryDisable = true;
 	showAndUnfoldSig();
+}
+
+function genTileKey(editor) {
+	return editor.document.fileName;
 }
 
 /**

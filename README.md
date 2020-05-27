@@ -17,6 +17,8 @@ After:
   - opacity
   - backgroundColor
   - plugin on/off
+  - fold on/off
+  - gutter icon on/off
 
 # Contribution
 

@@ -30,12 +30,17 @@ async function hideAndFoldSig() {
 }
 
 function decorationRenderOption() {
-	return {
+	let decoration = {
 		opacity: vscode.workspace.getConfiguration('byesig').get('opacity').toString(),
 		backgroundColor: vscode.workspace.getConfiguration('byesig').get('backgroundColor'),
-		gutterIconPath: path.join(__dirname, 'misc', 'icon.png'),
-		gutterIconSize: "contain",
+	};
+
+	if (vscode.workspace.getConfiguration('byesig').get('showIcon')) {
+		decoration['gutterIconPath'] = path.join(__dirname, 'misc', 'icon.png');
+		decoration['gutterIconSize'] = "contain";
 	}
+
+	return decoration;
 }
 
 function hideSig() {
@@ -57,6 +62,7 @@ function hideSig() {
 }
 
 async function foldSig() {
+	if (!vscode.workspace.getConfiguration('byesig').get('fold')) return;
 	if (temporaryDisable) return;
 	let editor = vscode.window.activeTextEditor;
 	if (!editor) return;

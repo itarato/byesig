@@ -8,20 +8,24 @@ const byesig = (function () {
   const RE_SIG_BLOCK = "^ *sig do$.*?^ *end.*?$";
   const RE_SIG_LINE = "^ *sig {.*?}.*?$";
 
+  const FORCE = true;
+
   let hideDelayTimeout;
   const DELAY_TIMEOUT_MS = 200;
 
   let byesigDecorationType = {};
   let temporaryDisable = false;
 
+  let knownDocuments = {};
+
   function delayedHideSig() {
     if (hideDelayTimeout) clearTimeout(hideDelayTimeout);
     hideDelayTimeout = setTimeout(hideSig, DELAY_TIMEOUT_MS);
   }
 
-  async function hideAndFoldSig() {
+  async function hideAndFoldSig(force = false) {
     hideSig();
-    await foldSig();
+    await foldSig(force);
   }
 
   function decorationRenderOption() {
@@ -56,7 +60,7 @@ const byesig = (function () {
     ]);
   }
 
-  async function foldSig() {
+  async function foldSig(force = false) {
     if (!vscode.workspace.getConfiguration('byesig').get('fold')) return;
     if (!vscode.workspace.getConfiguration('byesig').get('enabled')) return;
 
@@ -66,6 +70,7 @@ const byesig = (function () {
     if (!editor) return;
 
     if (!isRubyFile(editor)) return;
+    if (!force && !isNewlyOpened(editor.document.fileName)) return;
 
     // When switching active editor, it takes time for VSCode to establish a selection.
     // This wait is so the old location of the cursor can be captured correctly.
@@ -138,12 +143,41 @@ const byesig = (function () {
 
   function onCommandHideAndFoldSig() {
     temporaryDisable = false;
-    hideAndFoldSig();
+    hideAndFoldSig(FORCE);
   }
 
   function onCommandShowAndUnfoldSig() {
     temporaryDisable = true;
     showAndUnfoldSig();
+  }
+
+  /**
+   * @param {import("vscode").TextDocument} textDoc
+   */
+  function onDidOpenTextDocument(textDoc) {
+    if (textDoc.languageId != 'ruby') return
+    if (knownDocuments[textDoc.fileName]) {
+      knownDocuments[textDoc.fileName] += 1;
+    } else {
+      knownDocuments[textDoc.fileName] = 1;
+    }
+  }
+
+  /**
+   * @param {import("vscode").TextDocument} textDoc
+   */
+  function onDidCloseTextDocument(textDoc) {
+    if (textDoc.languageId != 'ruby') return
+    if (!knownDocuments[textDoc.fileName]) return;
+
+    delete knownDocuments[textDoc.fileName];
+  }
+
+  /**
+   * @param {string} fileName
+   */
+  function isNewlyOpened(fileName) {
+    return knownDocuments[fileName] == 1;
   }
 
   /**
@@ -159,8 +193,10 @@ const byesig = (function () {
   function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', onCommandHideAndFoldSig));
     context.subscriptions.push(vscode.commands.registerCommand('byesig.showSig', onCommandShowAndUnfoldSig));
-    vscode.window.onDidChangeActiveTextEditor(hideAndFoldSig, null, context.subscriptions);
+    vscode.window.onDidChangeActiveTextEditor(() => { hideAndFoldSig(); }, null, context.subscriptions);
     vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
+    vscode.workspace.onDidOpenTextDocument(onDidOpenTextDocument, null, context.subscriptions);
+    vscode.workspace.onDidCloseTextDocument(onDidCloseTextDocument, null, context.subscriptions);
 
     if (vscode.window.activeTextEditor) hideAndFoldSig();
   }

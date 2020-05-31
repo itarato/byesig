@@ -5,8 +5,8 @@ const byesig = (function () {
   const COMMAND_FOLD = 'editor.fold';
   const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
   // @FIXME: Don't match with empty block.
-  const RE_SIG_BLOCK = "^ *sig do$.*?^ *end$";
-  const RE_SIG_LINE = "^ *sig {.*?} *?$";
+  const RE_SIG_BLOCK = "^ *sig do$.*?^ *end.*?$";
+  const RE_SIG_LINE = "^ *sig {.*?}.*?$";
 
   let hideDelayTimeout;
   const DELAY_TIMEOUT_MS = 200;

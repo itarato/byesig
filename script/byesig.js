@@ -4,7 +4,8 @@ const path = require('path');
 const byesig = (function () {
   const COMMAND_FOLD = 'editor.fold';
   const COMMAND_UNFOLD_ALL = 'editor.unfoldAll';
-  // @FIXME: Don't match with empty block.
+  // @FIXME: Don't match with empty block. Empty block is not foldable by default and as such, folding
+  // will affect the parent block - which we do not want.
   const RE_SIG_BLOCK = "^ *sig do$.*?^ *end.*?$";
   const RE_SIG_LINE = "^ *sig {.*?}.*?$";
 
@@ -89,7 +90,10 @@ const byesig = (function () {
 
         // After selecting the fold regions (and fold) if we restore the cursor immediately sometimes VSCode makes a
         // selection with the delta. To avoid this, we wait a little.
-        setTimeout(() => { editor.selections = [original_selection]; }, 100);
+        setTimeout(() => {
+          editor.selections = [original_selection];
+          editor.revealRange(editor.selections[0]);
+        }, 100);
       }
     }, 100);
   }

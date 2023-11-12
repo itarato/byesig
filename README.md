@@ -1,5 +1,7 @@
 # ByeSpec
 
+> This is my first VS Code extension. I have no idea what I'm doing. 😅
+
 ByeSpec is a VSCode plugin to temporarily dim Specs in Elixir source files.
 
 When active it fades and folds Elixir `@spec` lines and blocks:

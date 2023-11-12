@@ -47,7 +47,7 @@ const byesig = (function () {
     if (temporaryDisable) return;
     let editor = vscode.window.activeTextEditor;
     if (!editor) return;
-    if (!isRubyFile(editor)) return;
+    if (!isElixirFile(editor)) return;
 
     let tile_key = genTileKey(editor);
     disposeHidingDecoration(tile_key);
@@ -70,7 +70,7 @@ const byesig = (function () {
     let editor = vscode.window.activeTextEditor;
     if (!editor) return;
 
-    if (!isRubyFile(editor)) return;
+    if (!isElixirFile(editor)) return;
     if (!force && !isNewlyOpened(editor.document.fileName)) return;
 
     // When switching active editor, it takes time for VSCode to establish a selection.
@@ -119,8 +119,8 @@ const byesig = (function () {
   /**
    * @param {import("vscode").TextEditor} editor
    */
-  function isRubyFile(editor) {
-    return editor.document.languageId == "ruby";
+  function isElixirFile(editor) {
+    return editor.document.languageId == "elixir";
   }
 
   async function showAndUnfoldSig() {
@@ -159,7 +159,7 @@ const byesig = (function () {
    * @param {import("vscode").TextDocument} textDoc
    */
   function onDidOpenTextDocument(textDoc) {
-    if (textDoc.languageId != 'ruby') return
+    if (textDoc.languageId != 'elixir') return
     if (knownDocuments[textDoc.fileName]) {
       knownDocuments[textDoc.fileName] += 1;
     } else {
@@ -171,7 +171,7 @@ const byesig = (function () {
    * @param {import("vscode").TextDocument} textDoc
    */
   function onDidCloseTextDocument(textDoc) {
-    if (textDoc.languageId != 'ruby') return
+    if (textDoc.languageId != 'elixir') return
     if (!knownDocuments[textDoc.fileName]) return;
 
     delete knownDocuments[textDoc.fileName];

@@ -1,7 +1,7 @@
-const byesig = require('./script/byesig.js');
+const byespec = require('./script/byespec.js');
 
-exports.activate = byesig.activate;
+exports.activate = byespec.activate;
 module.exports = {
-	activate: byesig.activate,
+	activate: byespec.activate,
 	deactivate: function() {},
 }

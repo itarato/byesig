@@ -1,11 +1,11 @@
 {
-	"name": "byesig",
-	"displayName": "byesig",
-	"description": "Hide Ruby Sorbet signatures",
-	"publisher": "itarato",
+	"name": "byespec",
+	"displayName": "byespec",
+	"description": "Hide Elixir Specs",
+	"publisher": "dogweather",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/itarato/byesig"
+		"url": "https://github.com/dogweather/byespec"
 	},
 	"version": "0.0.13",
 	"icon": "misc/logo.png",
@@ -16,44 +16,44 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:ruby"
+		"onLanguage:elixir"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "byesig.hideSig",
-				"title": "ByeSig: hide Sorbet signatures"
+				"command": "byespec.hideSig",
+				"title": "ByeSpec: hide Specs"
 			},
 			{
-				"command": "byesig.showSig",
-				"title": "ByeSig: show Sorbet signatures"
+				"command": "byespec.showSig",
+				"title": "ByeSpec: show Specs"
 			}
 		],
 		"configuration": {
-			"title": "Hide Ruby Sorbet signatures",
+			"title": "Dim Elixir Specs",
 			"properties": {
-				"byesig.enabled": {
+				"byespec.enabled": {
 					"type": "boolean",
 					"description": "Enables/disables the default hiding mechanism",
 					"default": true
 				},
-				"byesig.fold": {
+				"byespec.fold": {
 					"type": "boolean",
 					"description": "Fold (collapse) sig blocks",
 					"default": true
 				},
-				"byesig.backgroundColor": {
+				"byespec.backgroundColor": {
 					"type": "string",
 					"description": "The background color of the hidden signature region (CSS notation, eg: #2266AA), leave empty for transparent",
 					"default": ""
 				},
-				"byesig.opacity": {
+				"byespec.opacity": {
 					"type": "number",
 					"description": "Opacity of the signature area (0: transparent, 1: opaque)",
 					"default": 0.1
 				},
-				"byesig.showIcon": {
+				"byespec.showIcon": {
 					"type": "boolean",
 					"description": "Show a sig-line indicator icon on the left side gutter",
 					"default": true

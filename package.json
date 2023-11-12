@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/dogweather/byespec"
 	},
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"icon": "misc/logo.png",
 	"engines": {
 		"vscode": "^1.40.0"
@@ -22,11 +22,11 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "byespec.hideSig",
+				"command": "byespec.hideSpec",
 				"title": "ByeSpec: hide Specs"
 			},
 			{
-				"command": "byespec.showSig",
+				"command": "byespec.showSpec",
 				"title": "ByeSpec: show Specs"
 			}
 		],
@@ -40,22 +40,22 @@
 				},
 				"byespec.fold": {
 					"type": "boolean",
-					"description": "Fold (collapse) sig blocks",
+					"description": "Fold (collapse) spec blocks",
 					"default": true
 				},
 				"byespec.backgroundColor": {
 					"type": "string",
-					"description": "The background color of the hidden signature region (CSS notation, eg: #2266AA), leave empty for transparent",
+					"description": "The background color of the hidden spec region (CSS notation, eg: #2266AA), leave empty for transparent",
 					"default": ""
 				},
 				"byespec.opacity": {
 					"type": "number",
-					"description": "Opacity of the signature area (0: transparent, 1: opaque)",
-					"default": 0.1
+					"description": "Opacity of the spec area (0: transparent, 1: opaque)",
+					"default": 0.5
 				},
 				"byespec.showIcon": {
 					"type": "boolean",
-					"description": "Show a sig-line indicator icon on the left side gutter",
+					"description": "Show a spec-line indicator icon on the left side gutter",
 					"default": true
 				}
 			}

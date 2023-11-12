@@ -1,14 +1,10 @@
-# ByeSig
+# ByeSpec
 
-ByeSig is a VSCode plugin to temporarily hide [Sorbet](https://sorbet.org/) signatures in Ruby source files.
+ByeSpec is a VSCode plugin to temporarily dim [Sorbet](https://sorbet.org/) signatures in Ruby source files.
 
-When active it fades and folds Sorbet `sig` lines and blocks:
+When active it fades and folds Elixir `@spec` lines and blocks:
 
-Before:
-![Screenshot before](misc/screenshot-before.png)
-
-After:
-![Screenshot after](misc/screenshot-after.png)
+Screenshots: (TBD)
 
 # Options
 

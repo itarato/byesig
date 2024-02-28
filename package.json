@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/itarato/byesig"
 	},
-	"version": "0.0.13",
+	"version": "0.0.15",
 	"icon": "misc/logo.png",
 	"engines": {
 		"vscode": "^1.40.0"

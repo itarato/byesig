@@ -28,6 +28,10 @@
 			{
 				"command": "byesig.showSig",
 				"title": "ByeSig: show Sorbet signatures"
+			},
+			{
+				"command": "byesig.toggleSig",
+				"title": "ByeSig: toggle Sorbet signatures"
 			}
 		],
 		"configuration": {

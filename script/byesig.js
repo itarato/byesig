@@ -156,6 +156,16 @@ const byesig = (function () {
     showAndUnfoldSig();
   }
 
+  function onCommandToggleSig() {
+    if (temporaryDisable) {
+      temporaryDisable = false;
+      hideAndFoldSig(FORCE);
+    } else {
+      temporaryDisable = true;
+      showAndUnfoldSig();
+    }
+  }
+
   /**
    * @param {import("vscode").TextDocument} textDoc
    */
@@ -198,6 +208,7 @@ const byesig = (function () {
   function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('byesig.hideSig', onCommandHideAndFoldSig));
     context.subscriptions.push(vscode.commands.registerCommand('byesig.showSig', onCommandShowAndUnfoldSig));
+    context.subscriptions.push(vscode.commands.registerCommand('byesig.toggleSig', onCommandToggleSig));
     vscode.window.onDidChangeActiveTextEditor(() => { hideAndFoldSig(); }, null, context.subscriptions);
     vscode.workspace.onDidChangeTextDocument(delayedHideSig, null, context.subscriptions);
     vscode.workspace.onDidOpenTextDocument(onDidOpenTextDocument, null, context.subscriptions);
